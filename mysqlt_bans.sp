@@ -23,20 +23,20 @@ public void OnPluginStart()
 	CreateConVar("sm_mybans_version", PLUGIN_VERSION, "MYSQL-T Bans Version", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
 	AddCommandListener(OnAddBan, "sm_addban");
 
-	StartSQL();
+	Connect_to_Database();
 }
 
 Database connection = null;
 Database SQL_Connection()
 {
 	if(connection == null) {
-		StartSQL();
+		Connect_to_Database();
 	}
 
 	return connection;
 }
 
-void StartSQL()
+void Connect_to_Database()
 {
 	if(SQL_CheckConfig("threaded-bans"))
 		Database.Connect(ConnectedToDatabase, "threaded-bans");
