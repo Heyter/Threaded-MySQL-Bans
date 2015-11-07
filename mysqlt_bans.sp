@@ -18,14 +18,22 @@ public Plugin myinfo = {
 	url = "https://forums.alliedmods.net/showthread.php?p=1759904"
 };
 
-Database connection = null;
-
 public void OnPluginStart()
 {
 	CreateConVar("sm_mybans_version", PLUGIN_VERSION, "MYSQL-T Bans Version", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
 	AddCommandListener(OnAddBan, "sm_addban");
 
 	StartSQL();
+}
+
+Database connection = null;
+Database SQL_Connection()
+{
+	if(connection == null) {
+		StartSQL();
+	}
+
+	return connection;
 }
 
 void StartSQL()
@@ -64,7 +72,7 @@ void CreateTableIfNotExists()
 		") ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;"
 	);
 
-	connection.Query(DatabaseCreated, query);
+	SQL_Connection().Query(DatabaseCreated, query);
 }
 
 public void DatabaseCreated(Database database, DBResultSet result, const char[] error, any data)
@@ -118,15 +126,15 @@ void AddBanFor(const char[] playerName, const char[] steamId, int banLength, con
 {
 	int stringLength = strlen(playerName) * 2 + 1;
 	char[] escapedPlayerName = new char[stringLength];
-	connection.Escape(playerName, escapedPlayerName, stringLength);
+	SQL_Connection().Escape(playerName, escapedPlayerName, stringLength);
 
 	stringLength = strlen(steamId) * 2 + 1;
 	char[] escapedSteamId = new char[stringLength];
-	connection.Escape(steamId, escapedSteamId, stringLength);
+	SQL_Connection().Escape(steamId, escapedSteamId, stringLength);
 
 	stringLength = strlen(reason) * 2 + 1;
 	char[] escapedReason = new char[stringLength];
-	connection.Escape(reason, escapedReason, stringLength);
+	SQL_Connection().Escape(reason, escapedReason, stringLength);
 
 	char adminName[MAX_NAME_LENGTH];
 	if(admin == 0)
@@ -136,11 +144,11 @@ void AddBanFor(const char[] playerName, const char[] steamId, int banLength, con
 
 	stringLength = strlen(adminName) * 2 + 1;
 	char[] escapedAdminName = new char[stringLength];
-	connection.Escape(adminName, escapedAdminName, stringLength);
+	SQL_Connection().Escape(adminName, escapedAdminName, stringLength);
 
 	char query[MAX_QUERY_LENGTH];
 	Format(query, sizeof(query), "REPLACE INTO my_bans (player_name, steam_id, ban_length, ban_reason, banned_by, timestamp) VALUES ('%s','%s','%d','%s','%s',CURRENT_TIMESTAMP);", escapedPlayerName, escapedSteamId, banLength, escapedReason, escapedAdminName);
-	connection.Query(ClientBanned, query);
+	SQL_Connection().Query(ClientBanned, query);
 
 	char durationAsString[MAX_DURATION_LENGTH];
 	DurationAsString(durationAsString, sizeof(durationAsString), banLength);
@@ -170,12 +178,12 @@ void CheckBanStateOfClient(int client)
 
 	int steamIdLength = strlen(steamId) * 2 + 1;
 	char[] escapedSteamId = new char[steamIdLength];
-	connection.Escape(steamId, escapedSteamId, steamIdLength);
+	SQL_Connection().Escape(steamId, escapedSteamId, steamIdLength);
 
 	char query[MAX_QUERY_LENGTH];
 	Format(query, sizeof(query), "SELECT ban_length, TIMESTAMPDIFF(SQL_TSI_MINUTE, timestamp, CURRENT_TIMESTAMP), ban_reason FROM my_bans WHERE steam_id = '%s';", escapedSteamId);
 
-	connection.Query(ReceivedBanStateInfo, query, client);
+	SQL_Connection().Query(ReceivedBanStateInfo, query, client);
 }
 
 public void ReceivedBanStateInfo(Database database, DBResultSet result, const char[] error, any client)
@@ -229,12 +237,12 @@ void RemoveBanOf(const char[] steamId)
 {
 	int steamIdlength = strlen(steamId) * 2 + 1;
 	char[] escapedSteamId = new char[steamIdlength];
-	connection.Escape(steamId, escapedSteamId, steamIdlength);
+	SQL_Connection().Escape(steamId, escapedSteamId, steamIdlength);
 
 	char query[MAX_QUERY_LENGTH];
 	Format(query, sizeof(query), "DELETE FROM my_bans WHERE steam_id='%s';", escapedSteamId);
 
-	connection.Query(ClientUnbanned, query);
+	SQL_Connection().Query(ClientUnbanned, query);
 }
 
 public void ClientUnbanned(Database database, DBResultSet result, const char[] error, any data)
