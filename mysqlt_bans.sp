@@ -15,7 +15,7 @@ public Plugin myinfo = {
 	author = "senseless | modified by Shadow_Man",
 	description = "Threaded SteamID based mysql bans.",
 	version = PLUGIN_VERSION,
-	url = "https://forums.alliedmods.net/showthread.php?p=1759904"
+	url = "http://tf2-casual-fun.de/"
 };
 
 public void OnPluginStart()
