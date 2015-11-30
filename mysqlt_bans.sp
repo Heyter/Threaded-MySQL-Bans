@@ -11,8 +11,8 @@
 #define MAX_DURATION_LENGTH 32
 
 public Plugin myinfo = {
-	name = "[ANY] MySQL-T Bans",
-	author = "senseless | modified by Shadow_Man",
+	name = "MySQL-T bans",
+	author = "the casual trade and fun server",
 	description = "Threaded SteamID based mysql bans.",
 	version = PLUGIN_VERSION,
 	url = "http://tf2-casual-fun.de/"
