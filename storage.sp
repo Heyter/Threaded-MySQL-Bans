@@ -62,7 +62,7 @@ public void DatabaseCreated(Database database, DBResultSet result, const char[] 
 }
 
 void UpdateTableIfNeeded(Database connection) {
-  connection.Query(NeedUpdate, "SHOW COLUMNS FROM my_bans LIKE admin_steam_id;");
+  connection.Query(NeedUpdate, "SHOW COLUMNS FROM my_bans LIKE '%%admin_steam_id%%';");
 }
 
 public void NeedUpdate(Database database, DBResultSet result, const char[] error, any data)
@@ -74,13 +74,7 @@ public void NeedUpdate(Database database, DBResultSet result, const char[] error
 }
 
 void UpdateTable(Database connection) {
-  char query[MAX_QUERY_LENGTH];
-
-  Format(query, sizeof(query), "%s%s",
-    "ALTER TABLE my_bans ",
-    "ADD COLUMN admin_steam_id varchar(32) NOT NULL;");
-
-  connection.Query(UpdateFinished, query);
+  connection.Query(UpdateFinished, "ALTER TABLE my_bans ADD admin_steam_id varchar(32) NOT NULL;");
 }
 
 public void UpdateFinished(Database database, DBResultSet result, const char[] error, any data)
