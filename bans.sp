@@ -42,7 +42,7 @@ void AddBanFor(const char[] playerName, const char[] steamId, int banLength, con
   storage_connection.Escape(adminSteamId, escapedAdminSteamId, stringLength);
 
   char query[BIG_QUERY_LENGTH];
-  Format(query, sizeof(query), "REPLACE INTO my_bans (player_name, steam_id, ban_length, ban_reason, banned_by, admin_steam_id, timestamp) VALUES ('%s','%s','%d','%s','%s', %s, CURRENT_TIMESTAMP);", escapedPlayerName, escapedSteamId, banLength, escapedReason, escapedAdminName, escapedAdminSteamId);
+  Format(query, sizeof(query), "REPLACE INTO my_bans (player_name, steam_id, ban_length, ban_reason, banned_by, admin_steam_id, timestamp) VALUES ('%s','%s','%d','%s','%s', '%s', CURRENT_TIMESTAMP);", escapedPlayerName, escapedSteamId, banLength, escapedReason, escapedAdminName, escapedAdminSteamId);
   storage_connection.Query(ClientBanned, query);
 
   char durationAsString[MAX_DURATION_LENGTH];
