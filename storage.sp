@@ -2,14 +2,6 @@
 #define BIG_QUERY_LENGTH 512
 
 Database storage_connection = null;
-Database Storage_Connection()
-{
-  if(storage_connection == null) {
-    Connect_to_Database();
-  }
-
-  return storage_connection;
-}
 
 void Connect_to_Database()
 {

@@ -10,15 +10,15 @@ void AddBanFor(const char[] playerName, const char[] steamId, int banLength, con
 {
   int stringLength = strlen(playerName) * 2 + 1;
   char[] escapedPlayerName = new char[stringLength];
-  Storage_Connection().Escape(playerName, escapedPlayerName, stringLength);
+  storage_connection.Escape(playerName, escapedPlayerName, stringLength);
 
   stringLength = strlen(steamId) * 2 + 1;
   char[] escapedSteamId = new char[stringLength];
-  Storage_Connection().Escape(steamId, escapedSteamId, stringLength);
+  storage_connection.Escape(steamId, escapedSteamId, stringLength);
 
   stringLength = strlen(reason) * 2 + 1;
   char[] escapedReason = new char[stringLength];
-  Storage_Connection().Escape(reason, escapedReason, stringLength);
+  storage_connection.Escape(reason, escapedReason, stringLength);
 
   char adminName[MAX_NAME_LENGTH];
   bool adminIsConsole = admin == 0;
@@ -29,7 +29,7 @@ void AddBanFor(const char[] playerName, const char[] steamId, int banLength, con
 
   stringLength = strlen(adminName) * 2 + 1;
   char[] escapedAdminName = new char[stringLength];
-  Storage_Connection().Escape(adminName, escapedAdminName, stringLength);
+  storage_connection.Escape(adminName, escapedAdminName, stringLength);
 
   char adminSteamId[MAX_AUTH_LENGTH];
   if(adminIsConsole)
@@ -39,11 +39,11 @@ void AddBanFor(const char[] playerName, const char[] steamId, int banLength, con
 
   stringLength = strlen(adminSteamId) * 2 + 1;
   char[] escapedAdminSteamId = new char[stringLength];
-  Storage_Connection().Escape(adminSteamId, escapedAdminSteamId, stringLength);
+  storage_connection.Escape(adminSteamId, escapedAdminSteamId, stringLength);
 
   char query[BIG_QUERY_LENGTH];
   Format(query, sizeof(query), "REPLACE INTO my_bans (player_name, steam_id, ban_length, ban_reason, banned_by, admin_steam_id, timestamp) VALUES ('%s','%s','%d','%s','%s', %s, CURRENT_TIMESTAMP);", escapedPlayerName, escapedSteamId, banLength, escapedReason, escapedAdminName, escapedAdminSteamId);
-  Storage_Connection().Query(ClientBanned, query);
+  storage_connection.Query(ClientBanned, query);
 
   char durationAsString[MAX_DURATION_LENGTH];
   DurationAsString(durationAsString, sizeof(durationAsString), banLength);
@@ -68,12 +68,12 @@ void CheckBanStateOfClient(int client)
 
   int steamIdLength = strlen(steamId) * 2 + 1;
   char[] escapedSteamId = new char[steamIdLength];
-  Storage_Connection().Escape(steamId, escapedSteamId, steamIdLength);
+  storage_connection.Escape(steamId, escapedSteamId, steamIdLength);
 
   char query[MAX_QUERY_LENGTH];
   Format(query, sizeof(query), "SELECT ban_length, TIMESTAMPDIFF(SQL_TSI_MINUTE, timestamp, CURRENT_TIMESTAMP), ban_reason FROM my_bans WHERE steam_id = '%s';", escapedSteamId);
 
-  Storage_Connection().Query(ReceivedBanStateInfo, query, client);
+  storage_connection.Query(ReceivedBanStateInfo, query, client);
 }
 
 public void ReceivedBanStateInfo(Database database, DBResultSet result, const char[] error, any client)
@@ -127,12 +127,12 @@ void RemoveBanOf(const char[] steamId)
 {
   int steamIdlength = strlen(steamId) * 2 + 1;
   char[] escapedSteamId = new char[steamIdlength];
-  Storage_Connection().Escape(steamId, escapedSteamId, steamIdlength);
+  storage_connection.Escape(steamId, escapedSteamId, steamIdlength);
 
   char query[MAX_QUERY_LENGTH];
   Format(query, sizeof(query), "DELETE FROM my_bans WHERE steam_id='%s';", escapedSteamId);
 
-  Storage_Connection().Query(ClientUnbanned, query);
+  storage_connection.Query(ClientUnbanned, query);
 }
 
 public void ClientUnbanned(Database database, DBResultSet result, const char[] error, any data)
