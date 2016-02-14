@@ -66,6 +66,10 @@ void CheckBanStateOfClient(int client)
   char steamId[MAX_AUTH_LENGTH];
   GetClientAuthId(client, AuthId_Steam2, steamId, sizeof(steamId));
 
+  CheckIfClientIsBanned(client, steamId);
+}
+
+void CheckIfClientIsBanned(int client, const char[] steamId) {
   int steamIdLength = strlen(steamId) * 2 + 1;
   char[] escapedSteamId = new char[steamIdLength];
   storage_connection.Escape(steamId, escapedSteamId, steamIdLength);
@@ -73,23 +77,38 @@ void CheckBanStateOfClient(int client)
   char query[MAX_QUERY_LENGTH];
   Format(query, sizeof(query), "SELECT ban_length, TIMESTAMPDIFF(SQL_TSI_MINUTE, timestamp, CURRENT_TIMESTAMP), ban_reason FROM my_bans WHERE steam_id = '%s';", escapedSteamId);
 
-  storage_connection.Query(ReceivedBanStateInfo, query, client);
+  DataPack pack = new DataPack();
+  pack.WriteCell(client);
+  pack.WriteString(steamId);
+  pack.Reset();
+
+  storage_connection.Query(ReceivedBanStateInfo, query, pack);
 }
 
-public void ReceivedBanStateInfo(Database database, DBResultSet result, const char[] error, any client)
+public void ReceivedBanStateInfo(Database database, DBResultSet result, const char[] error, any data)
 {
-  if(client <= 0)
-    return;
+  DataPack pack = view_as<DataPack>(data);
+  int client = pack.ReadCell();
 
-  if(result == null) {
-    LogError("[MYBans] Error during check of ban state for client %L: %s", client, error);
-    KickClient(client, "Error: Reattempt connection");
-
+  if(client <= 0) {
+    delete pack;
     return;
   }
 
-  if(result.RowCount <= 0)
+  if(result == null) {
+    LogError("[MYBans] Error during check of ban state for client %L: %s", client, error);
+    if (IsClientConnected(client)) {
+      KickClient(client, "Error: Reattempt connection");
+    }
+
+    delete pack;
     return;
+  }
+
+  if(result.RowCount <= 0) {
+    delete pack;
+    return;
+  }
 
   result.FetchRow();
   int banLength = result.FetchInt(0);
@@ -104,15 +123,19 @@ public void ReceivedBanStateInfo(Database database, DBResultSet result, const ch
     char banReason[MAX_REASON_LENGTH];
     result.FetchString(2, banReason, sizeof(banReason));
 
-    KickClient(client, "Banned (%s): %s", durationAsString, banReason);
+    if (IsClientConnected(client)) {
+      KickClient(client, "Banned (%s): %s", durationAsString, banReason);
+    }
   }
   else {
     char steamId[MAX_AUTH_LENGTH];
-    GetClientAuthId(client, AuthId_Steam2, steamId, sizeof(steamId));
+    pack.ReadString(steamId, sizeof(steamId));
 
     RemoveBanOf(steamId);
     LogAction(0, 0, "Allowing %L to connect. Ban has expired.", client);
   }
+
+  delete pack;
 }
 
 void DurationAsString(char[] buffer, int maxLength, int duration)
